@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amor Sin Fin ♾️❤️ - Flokelly & Kellyflo</title>
+
+<style>
+/* ================= WORLD CLASS LOVE EXPERIENCE ================= */
+
+:root{
+--pink:#ff6b9d;
+--gold:#ffbe0b;
+--hot:#ff006e;
+--text:#ffd4e5;
+--dark:#1a0520;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+height:100vh;
+overflow:hidden;
+font-family:Georgia,serif;
+background:radial-gradient(circle at top,#3b0a45,var(--dark),#000);
+animation:bg 15s infinite alternate;
+color:white;
+cursor:crosshair;
+}
+
+@keyframes bg{
+0%{background-position:50% 0%}
+100%{background-position:50% 100%}
+}
+
+canvas{
+position:fixed;
+top:0;left:0;
+pointer-events:none;
+}
+
+#fireworks{z-index:1}
+#mouse-trail{z-index:2}
+
+.center{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+padding:40px;
+background:rgba(58,10,69,.35);
+border-radius:30px;
+backdrop-filter:blur(12px);
+border:2px solid rgba(255,107,157,.3);
+box-shadow:0 0 80px rgba(255,107,157,.6);
+animation:float3d 15s infinite ease-in-out;
+z-index:5;
+text-align:center;
+}
+
+@keyframes float3d{
+0%,100%{transform:translate(-50%,-50%) rotateX(0) rotateY(0)}
+50%{transform:translate(-50%,-50%) rotateX(8deg) rotateY(12deg)}
+}
+
+.center h1{
+font-size:4rem;
+background:linear-gradient(45deg,var(--hot),var(--pink),var(--gold));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+animation:grad 5s infinite;
+}
+
+@keyframes grad{
+0%{background-position:0%}
+100%{background-position:300%}
+}
+
+.center h2{
+margin-top:15px;
+color:var(--gold);
+text-shadow:0 0 30px var(--pink);
+}
+
+.center p{
+margin-top:20px;
+font-size:1.4rem;
+line-height:1.9;
+color:var(--text);
+}
+
+/* HEARTS */
+.heart{
+position:absolute;
+width:28px;height:28px;
+transform:rotate(45deg);
+animation:rise 8s linear forwards;
+z-index:20;
+}
+.heart:before,.heart:after{
+content:"";
+position:absolute;
+width:28px;height:28px;
+background:linear-gradient(45deg,#ff6b9d,#ffbe0b,#ff006e);
+border-radius:50%;
+}
+.heart:before{left:-14px}
+.heart:after{top:-14px}
+
+@keyframes rise{
+0%{transform:translateY(0) scale(1) rotate(45deg);opacity:1}
+50%{transform:translateY(-50vh) scale(.8) rotate(225deg)}
+100%{transform:translateY(-100vh) scale(.4) rotate(405deg);opacity:0}
+}
+
+/* ORBIT WORDS */
+.orbit-word{
+position:absolute;
+font-weight:bold;
+color:#ff6b9d;
+text-shadow:0 0 20px #ff6b9d, 0 0 40px #ffbe0b, 0 0 60px #ff006e;
+pointer-events:none;
+font-size:1.4rem;
+z-index:25;
+}
+
+/* MUSIC BUTTON */
+.music-control{
+position:fixed;
+bottom:25px;right:25px;
+width:60px;height:60px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(255,107,157,.4);
+font-size:26px;
+cursor:pointer;
+box-shadow:0 0 30px var(--pink);
+z-index:30;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.center h1{font-size:2.6rem}
+.center h2{font-size:1.4rem}
+.center p{font-size:1rem}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="fireworks"></canvas>
+<canvas id="mouse-trail"></canvas>
+
+<div class="center" id="loveBlock">
+<h1>♾️ Amor Sin Fin ♾️</h1>
+<h2>✨ Flokelly ❣️ Kellyflo✨</h2>
+<p>
+Mi vida mía… te amo sin medida 💕<br>
+Obsessed con amarte cada segundo 🌹<br>
+Eternamente juntos, alma con alma 💫
+</p>
+</div>
+
+<div class="music-control" id="musicBtn">🎵</div>
+
+<!-- AUDIO ELEMENT -->
+<audio id="loveSong" loop>
+  <source src="iyanii.m4a" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+<script>
+/* ==================== ENGINE ==================== */
+
+const fw=document.getElementById("fireworks"),
+fctx=fw.getContext("2d"),
+mt=document.getElementById("mouse-trail"),
+mctx=mt.getContext("2d");
+
+let fireworks=[],trail=[],orbit=[];
+fw.width=mt.width=innerWidth;
+fw.height=mt.height=innerHeight;
+
+window.onresize=()=>{fw.width=mt.width=innerWidth;fw.height=mt.height=innerHeight}
+
+const rnd=(a,b)=>Math.random()*(b-a)+a;
+
+/* FIREWORK PARTICLE */
+class Firework{
+constructor(x,y,vx,vy,c){
+this.x=x;this.y=y;
+this.vx=vx;this.vy=vy;
+this.life=100;
+this.c=c;
+}
+update(){
+this.x+=this.vx;
+this.y+=this.vy;
+this.vy+=0.05;
+this.life--;
+}
+draw(){
+fctx.globalAlpha=this.life/100;
+fctx.fillStyle=this.c;
+fctx.beginPath();
+fctx.arc(this.x,this.y,2.5,0,Math.PI*2);
+fctx.fill();
+}
+}
+
+/* HEART FIREWORK */
+function heartFirework(x,y){
+for(let t=0;t<Math.PI*2;t+=0.15){
+const hx=16*Math.pow(Math.sin(t),3);
+const hy=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+fireworks.push(new Firework(x,y,hx/6,hy/6,"#ff6b9d"));
+}
+}
+
+/* COLORFUL FIREWORK */
+function colorfulFirework(x,y){
+  const colors=["#ff6b9d","#ffbe0b","#ff006e","#00ffe0","#6bff00","#ff00ea"];
+  for(let t=0;t<Math.PI*2;t+=0.12){
+    const vx = Math.cos(t)*rnd(1,4);
+    const vy = Math.sin(t)*rnd(1,4);
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    fireworks.push(new Firework(x,y,vx,vy,c));
+  }
+}
+
+/* TEXT FIREWORK */
+function textFirework(txt){
+const c=document.createElement("canvas"),
+cx=c.getContext("2d");
+c.width=900;c.height=200;
+cx.font="bold 90px Georgia";
+cx.fillStyle="white";
+cx.textAlign="center";
+cx.fillText(txt,450,120);
+const d=cx.getImageData(0,0,900,200).data;
+for(let y=0;y<200;y+=6){
+for(let x=0;x<900;x+=6){
+if(d[(y*900+x)*4+3]>150){
+fireworks.push(new Firework(
+innerWidth/2-450+x,
+innerHeight*.3+y,
+rnd(-1,1),rnd(-1,1),
+"#ff9ecd"
+));
+}
+}
+}
+}
+
+/* HEART FLOAT ALL OVER SCREEN */
+setInterval(()=>{
+const h=document.createElement("div");
+h.className="heart";
+h.style.left=rnd(0,innerWidth)+"px";
+h.style.bottom="-30px";
+document.body.appendChild(h);
+setTimeout(()=>h.remove(),8000);
+},200);
+
+/* AUTO FIREWORKS */
+setInterval(()=>heartFirework(rnd(0,innerWidth),rnd(0,innerHeight/2)),900);
+setInterval(()=>colorfulFirework(rnd(0,innerWidth),rnd(0,innerHeight/2)),1200);
+
+setTimeout(()=>textFirework("FLokelly ❣️ Kellyflo"),1200);
+
+/* CLICK */
+document.addEventListener("click",e=>{
+heartFirework(e.clientX,e.clientY);
+colorfulFirework(e.clientX,e.clientY);
+});
+
+/* SPARKLING SPANISH LOVE WORDS ALL OVER SCREEN */
+const loveWords = ["Te amo 💕","Mi vida 🌹","Eres mi todo ✨","Amor eterno ♾️","Mi corazón ❤️"];
+function createOrbitWord(){
+  const w = document.createElement("div");
+  w.className = "orbit-word";
+  w.style.left = rnd(0,innerWidth)+"px";
+  w.style.top = rnd(0,innerHeight)+"px";
+  w.textContent = loveWords[Math.floor(Math.random()*loveWords.length)];
+  document.body.appendChild(w);
+  
+  const dx = (Math.random()-0.5)*2;
+  const dy = (Math.random()-0.5)*2;
+  
+  let life=0;
+  const move = setInterval(()=>{
+    let x = parseFloat(w.style.left);
+    let y = parseFloat(w.style.top);
+    w.style.left = x+dx+"px";
+    w.style.top = y+dy+"px";
+    life++;
+    if(life>500){w.remove(); clearInterval(move);}
+  },30);
+}
+setInterval(createOrbitWord,400);
+
+/* LOOP */
+function animate(){
+fctx.fillStyle="rgba(0,0,0,.15)";
+fctx.fillRect(0,0,fw.width,fw.height);
+
+fireworks.forEach((p,i)=>{
+p.update();p.draw();
+if(p.life<=0)fireworks.splice(i,1);
+});
+
+requestAnimationFrame(animate);
+}
+animate();
+
+/* ==================== MUSIC BUTTON ==================== */
+const musicBtn = document.getElementById("musicBtn");
+const loveSong = document.getElementById("loveSong");
+
+musicBtn.addEventListener("click", ()=>{
+    if(loveSong.paused){
+        loveSong.play();
+        musicBtn.textContent = "🔊";
+    } else {
+        loveSong.pause();
+        musicBtn.textContent = "🎵";
+    }
+});
+</script>
+
+</body>
+</html>
